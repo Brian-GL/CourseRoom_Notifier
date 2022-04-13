@@ -6,9 +6,16 @@ package frames;
 
 import java.awt.Color;
 import java.awt.Image;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 /**
  *
@@ -16,6 +23,9 @@ import javax.swing.ImageIcon;
  */
 public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
 
+    private ServerSocket serverSocket;
+    private Conexion_Servidor conexion_Servidor;
+    
     /**
      * Creates new form CourseRoom_Notifier_Frame
      */
@@ -31,6 +41,7 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             logo_Inicio_JLabel.setIcon(icono);
             logo_Imagen.flush();
             icono.getImage().flush();
+            serverSocket = new ServerSocket(9001);
         } catch (IOException ex) {
             
         }
@@ -45,6 +56,8 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         descripcion_JTextPane.setCaretColor(color_Azul_Oscuro);
         descripcion_JScrollPane.setForeground(color_Azul_Oscuro);
         
+        conexion_Servidor = new Conexion_Servidor();
+        conexion_Servidor.start();
         
     }
 
@@ -66,7 +79,11 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("CourseRoom Notifier");
         setMinimumSize(new java.awt.Dimension(800, 600));
-        setPreferredSize(new java.awt.Dimension(800, 600));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         visualizador_JPanel.setBackground(new java.awt.Color(14, 30, 64));
         visualizador_JPanel.setForeground(new java.awt.Color(104, 194, 232));
@@ -77,15 +94,14 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         logo_Inicio_JLabel.setPreferredSize(new java.awt.Dimension(150, 125));
 
         descripcion_JTextPane.setEditable(false);
-        descripcion_JTextPane.setContentType("text/html"); // NOI18N
         descripcion_JTextPane.setFont(new java.awt.Font("Segoe UI", 0, 19)); // NOI18N
         descripcion_JTextPane.setToolTipText("");
         descripcion_JScrollPane.setViewportView(descripcion_JTextPane);
 
-        titulo_Inicio_JLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        titulo_Inicio_JLabel.setText("Notificador");
         titulo_Inicio_JLabel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         titulo_Inicio_JLabel.setForeground(new java.awt.Color(104, 194, 232));
+        titulo_Inicio_JLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        titulo_Inicio_JLabel.setText("Notificador");
         titulo_Inicio_JLabel.setPreferredSize(new java.awt.Dimension(670, 48));
 
         javax.swing.GroupLayout visualizador_JPanelLayout = new javax.swing.GroupLayout(visualizador_JPanel);
@@ -117,6 +133,83 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        try {
+            // TODO add your handling code here:
+            
+            conexion_Servidor.interrupt();
+            
+            // Cerrando la conexón
+            serverSocket.close();
+            
+            
+            System.exit(0);
+        } catch (IOException ex) {
+            
+        }
+    }//GEN-LAST:event_formWindowClosing
+
+   
+    private class Conexion_Servidor extends Thread{
+        
+        @Override
+        public void run(){
+            BufferedReader entrada;
+            DataOutputStream salida;
+            Socket socket;
+
+            try {
+
+
+
+                Agregar_Texto("Esperando una conexión...\n");
+
+                while(serverSocket != null){
+
+                    socket = serverSocket.accept();
+
+                    Agregar_Texto("El servidor de CourseRoom se ha conectado...\n");
+
+                    // Para los canales de entrada y salida de datos
+
+                    entrada = new BufferedReader(new InputStreamReader(
+                             socket.getInputStream()));
+
+                    salida = new DataOutputStream(socket.getOutputStream());
+
+                    Agregar_Texto("Confirmando conexion al cliente....\n");
+
+                    salida.writeUTF("Conexión exitosa...");
+
+                    // Para recibir el mensaje
+
+                    String mensajeRecibido = entrada.readLine();
+
+
+                    Agregar_Texto(mensajeRecibido+" Tiene Una Nueva Actualización!");
+
+                    salida.writeUTF("Se recibio tu mensaje.");
+
+                    salida.writeUTF("Gracias por conectarte.");
+
+                }
+
+
+
+            } catch (IOException e) {
+                 Agregar_Texto("Error de entrada/salida."  + e.getMessage());
+            }
+        }
+    }
+
+    private void Agregar_Texto(String texto){
+        try {
+            Document doc = descripcion_JTextPane.getDocument();
+            doc.insertString(doc.getLength(), texto, null);
+        } catch(BadLocationException exc) {
+            
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane descripcion_JScrollPane;

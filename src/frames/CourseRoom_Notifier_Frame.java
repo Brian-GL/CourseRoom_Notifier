@@ -187,7 +187,7 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                         arreglo[i] = entryBuffer[indice];
                     }
                     
-                    valor = ConvertirArreglo(arreglo);
+                    valor = ConvertirArreglo(arreglo).substring(1);
                     
                     mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación Con IP: "+valor;
                     Agregar_Texto(mensaje+"\n");

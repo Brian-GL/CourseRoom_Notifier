@@ -512,9 +512,59 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 }
             }
             break;
+            //Tarea por calificar
+            case 6:{
+                Agregar_Texto("Enviando Aviso Tarea A La IP: "+ip+"...\n");
+
+                String simpleMessage = String.valueOf(id_Usuario);
+                byte bandera = 0;
+
+                byte[] buffer = new byte[64];
+
+                //Usuario:
+                buffer[0] = (byte) simpleMessage.length();
+
+                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
+                byte[] copia = simpleMessage.getBytes();
+
+                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
+                for(int i = 1; i <= simpleMessage.length();i++){
+                    buffer[i] = copia[i-1];
+                }
+
+                int indice = simpleMessage.length()+1;
+                buffer[indice] = (byte) ip.length();
+                indice++;
+
+                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
+                copia = ip.getBytes();
+
+                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
+                for(int i = 0; i < ip.length();i++,indice++){
+                    buffer[indice] = copia[i];
+                }
+
+                while(bandera < 60){
+                    try(DatagramSocket socketSender = new DatagramSocket()){
+
+                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
+                                InetAddress.getByName("localhost"),9008);
+
+                        socketSender.send(datagramPacket);
+                        bandera = 100;
+                    } catch (SocketException ex) {
+                        System.err.println(ex.getMessage());
+                        bandera++;
+                    } catch (IOException ex) {
+                        System.err.println(ex.getMessage());
+                        bandera++;
+                    }    
+                }
+            }
+            break;
         }
     }
-
+    
     private void Agregar_Texto(String texto){
         try {
             Document doc = descripcion_JTextPane.getDocument();
@@ -523,7 +573,6 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             
         }
     }
-    
     
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

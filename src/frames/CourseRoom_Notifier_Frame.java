@@ -6,12 +6,12 @@ package frames;
 
 import java.awt.Color;
 import java.awt.Image;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.nio.charset.Charset;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.text.BadLocationException;
@@ -23,28 +23,16 @@ import javax.swing.text.Document;
  */
 public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
 
-    private ServerSocket serverSocket;
+    private DatagramSocket datagramSocket;
     private Conexion_Servidor conexion_Servidor;
+    private int Id_Usuario;
+    
     
     /**
      * Creates new form CourseRoom_Notifier_Frame
      */
     public CourseRoom_Notifier_Frame() {
         initComponents();
-        
-        Image logo_Imagen;
-        try {
-            logo_Imagen = ImageIO.read(getClass().getResource("/recursos/imagenes/Course_Room_Brand_Blue.png"));
-            logo_Imagen = logo_Imagen.getScaledInstance(150, 125, Image.SCALE_SMOOTH);
-            this.setIconImage(logo_Imagen);
-            ImageIcon icono = new ImageIcon(logo_Imagen);
-            logo_Inicio_JLabel.setIcon(icono);
-            logo_Imagen.flush();
-            icono.getImage().flush();
-            serverSocket = new ServerSocket(9001);
-        } catch (IOException ex) {
-            
-        }
         
         Color color_Azul_Oscuro = new Color(14, 30, 64);
         Color color_Azul_Claro = new Color(104, 194, 232);
@@ -56,8 +44,21 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         descripcion_JTextPane.setCaretColor(color_Azul_Oscuro);
         descripcion_JScrollPane.setForeground(color_Azul_Oscuro);
         
-        conexion_Servidor = new Conexion_Servidor();
-        conexion_Servidor.start();
+        Image logo_Imagen;
+        try {
+            logo_Imagen = ImageIO.read(getClass().getResource("/recursos/imagenes/Course_Room_Brand_Blue.png"));
+            logo_Imagen = logo_Imagen.getScaledInstance(150, 125, Image.SCALE_SMOOTH);
+            this.setIconImage(logo_Imagen);
+            ImageIcon icono = new ImageIcon(logo_Imagen);
+            logo_Inicio_JLabel.setIcon(icono);
+            logo_Imagen.flush();
+            icono.getImage().flush();
+            datagramSocket = new DatagramSocket(9001);
+            conexion_Servidor = new Conexion_Servidor();
+            conexion_Servidor.start();
+        } catch (IOException ex) {
+            Agregar_Texto(ex.getMessage());
+        }
         
     }
 
@@ -134,71 +135,98 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        try {
-            // TODO add your handling code here:
-            
-            conexion_Servidor.interrupt();
-            
-            // Cerrando la conexón
-            serverSocket.close();
-            
-            
-            System.exit(0);
-        } catch (IOException ex) {
-            
-        }
+       
+        conexion_Servidor.interrupt();
+
+        // Cerrando la conexón
+        datagramSocket.close();
+
+        System.exit(0);
     }//GEN-LAST:event_formWindowClosing
 
    
     private class Conexion_Servidor extends Thread{
         
+        
         @Override
         public void run(){
-            BufferedReader entrada;
-            DataOutputStream salida;
-            Socket socket;
+            
+            Agregar_Texto("Esperando Conexión Con CourseRoom Server...");
+            byte[] entryBuffer = new byte[128];
+            DatagramPacket datagramPacket = new DatagramPacket(entryBuffer,entryBuffer.length);
+            String mensaje;
+            String valor;
+            int longitud;
+            int indice;
+            while(true){
+                
+                try {
+                    
+                    datagramSocket.receive(datagramPacket);
+                    
+                    //Usuario:
+                    indice = 0;
+                    longitud = (int)entryBuffer[indice];
+                    byte[] arreglo = new byte[longitud];
+                    
+                    for(int i = 1; i <= longitud; i++){
+                        arreglo[i-1] = entryBuffer[i];
+                    }
+                    
+                    indice = indice + 1;
+                    valor = ConvertirArreglo(arreglo);
+                    System.out.println(valor);
+                    
+                    Id_Usuario = Integer.parseInt(valor);
+                    
+                    //Ip:
+                    longitud = (int)entryBuffer[indice];
+                    indice++;
+                    arreglo = new byte[longitud];
+                    
+                    for(int i = 0; i < longitud; i++,indice++){
+                        arreglo[i] = entryBuffer[indice];
+                    }
+                    
+                    valor = ConvertirArreglo(arreglo);
+                    
+                    mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación Con IP: "+valor;
+                    Agregar_Texto(mensaje+"\n");
 
-            try {
-
-
-
-                Agregar_Texto("Esperando una conexión...\n");
-
-                while(serverSocket != null){
-
-                    socket = serverSocket.accept();
-
-                    Agregar_Texto("El servidor de CourseRoom se ha conectado...\n");
-
-                    // Para los canales de entrada y salida de datos
-
-                    entrada = new BufferedReader(new InputStreamReader(
-                             socket.getInputStream()));
-
-                    salida = new DataOutputStream(socket.getOutputStream());
-
-                    Agregar_Texto("Confirmando conexion al cliente....\n");
-
-                    salida.writeUTF("Conexión exitosa...");
-
-                    // Para recibir el mensaje
-
-                    String mensajeRecibido = entrada.readLine();
-
-
-                    Agregar_Texto(mensajeRecibido+" Tiene Una Nueva Actualización!");
-
-                    salida.writeUTF("Se recibio tu mensaje.");
-
-                    salida.writeUTF("Gracias por conectarte.");
-
+                } catch (IOException ex) {
+                    Agregar_Texto(ex.getMessage());
                 }
-
-
-
-            } catch (IOException e) {
-                 Agregar_Texto("Error de entrada/salida."  + e.getMessage());
+                
+                
             }
+        }
+    }
+    
+    public String ConvertirArreglo(byte[] arreglo) {
+        return new String(arreglo,Charset.defaultCharset());
+    }
+
+    private void Enviar_Aviso(int id_Usuario, String ip){
+        
+        String simpleMessage = String.valueOf(id_Usuario);
+        byte bandera = 0;
+        byte[] buffer = simpleMessage.getBytes();
+        while(bandera < 60){
+            try(DatagramSocket socketSender = new DatagramSocket()){
+
+                DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
+                        InetAddress.getByName("localhost")
+                        ,9001);
+
+                socketSender.send(datagramPacket);
+                bandera = 60;
+            } catch (SocketException ex) {
+                System.err.println(ex.getMessage());
+                bandera++;
+            } catch (IOException ex) {
+                System.err.println(ex.getMessage());
+                bandera++;
+            }    
         }
     }
 
@@ -210,6 +238,8 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             
         }
     }
+    
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane descripcion_JScrollPane;

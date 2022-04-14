@@ -11,7 +11,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.nio.charset.Charset;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.text.BadLocationException;
@@ -192,6 +191,8 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                     
                     mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación Con IP: "+valor;
                     Agregar_Texto(mensaje+"\n");
+                    
+                    Enviar_Aviso(Id_Usuario,valor);
 
                 } catch (IOException ex) {
                     Agregar_Texto(ex.getMessage());
@@ -207,18 +208,44 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
 
     private void Enviar_Aviso(int id_Usuario, String ip){
         
+        Agregar_Texto("Enviando Aviso Al IP: "+ip+"...\n");
+        
         String simpleMessage = String.valueOf(id_Usuario);
         byte bandera = 0;
-        byte[] buffer = simpleMessage.getBytes();
+        
+        byte[] buffer = new byte[128];
+        
+        //Usuario:
+        buffer[0] = (byte) simpleMessage.length();
+			
+        //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
+        byte[] copia = simpleMessage.getBytes();
+
+        //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
+        for(int i = 1; i <= simpleMessage.length();i++){
+            buffer[i] = copia[i-1];
+        }
+        
+        int indice = simpleMessage.length()+1;
+        buffer[indice] = (byte) ip.length();
+        indice++;
+        
+        //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
+        copia = ip.getBytes();
+
+        //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
+        for(int i = 0; i < ip.length();i++,indice++){
+            buffer[indice] = copia[i];
+        }
+       
         while(bandera < 60){
             try(DatagramSocket socketSender = new DatagramSocket()){
 
                 DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                        InetAddress.getByName("localhost")
-                        ,9001);
+                        InetAddress.getByName("localhost"),9002);
 
                 socketSender.send(datagramPacket);
-                bandera = 60;
+                bandera = 100;
             } catch (SocketException ex) {
                 System.err.println(ex.getMessage());
                 bandera++;

@@ -197,13 +197,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                     Agregar_Texto(ex.getMessage());
                 }
                 
-                
             }
         }
     }
     
     public String ConvertirArreglo(byte[] arreglo) {
-        return new String(arreglo,Charset.defaultCharset());
+        return new String(arreglo);
     }
 
     private void Enviar_Aviso(int id_Usuario, String ip){

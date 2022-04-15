@@ -154,7 +154,6 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             byte[] entryBuffer = new byte[64];
             DatagramPacket datagramPacket = new DatagramPacket(entryBuffer,entryBuffer.length);
             String mensaje;
-            String valor;
             int longitud;
             int indice;
             while(true){
@@ -173,28 +172,16 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                     }
                     
                     indice = indice + 1;
-                    valor = ConvertirArreglo(arreglo);
-                    System.out.println(valor);
+                    mensaje = ConvertirArreglo(arreglo);
                     
-                    Id_Usuario = Integer.parseInt(valor);
-                    
-                    //Ip:
-                    longitud = (int)entryBuffer[indice];
-                    indice++;
-                    arreglo = new byte[longitud];
-                    
-                    for(int i = 0; i < longitud; i++,indice++){
-                        arreglo[i] = entryBuffer[indice];
-                    }
-                    
-                    valor = ConvertirArreglo(arreglo).substring(1);
-                    
+                    Id_Usuario = Integer.parseInt(mensaje);
+                   
                     indice = (int)entryBuffer[indice++];
                     
-                    mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación Con IP: "+valor;
+                    mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación";
                     Agregar_Texto(mensaje+"\n");
                     
-                    Enviar_Aviso(Id_Usuario,valor, indice);
+                    Enviar_Aviso(Id_Usuario, indice);
 
                 } catch (IOException ex) {
                     Agregar_Texto(ex.getMessage());
@@ -208,18 +195,18 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         return new String(arreglo);
     }
 
-    private void Enviar_Aviso(int id_Usuario, String ip, int tipo_Aviso){
+    private void Enviar_Aviso(int id_Usuario, int tipo_Aviso){
         
         switch(tipo_Aviso){
             //Aviso
             case 0:
             {
-                Agregar_Texto("Enviando Aviso A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Al Usuario: "+String.valueOf(id_Usuario)+"...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -233,16 +220,7 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 }
 
                 int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){
@@ -264,12 +242,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             break;
             //Chat
             case 1:{
-                Agregar_Texto("Enviando Aviso Chat A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Chat Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -278,21 +256,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 byte[] copia = simpleMessage.getBytes();
 
                 //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
+                for (int i = 1; i <= simpleMessage.length(); i++) {
+                    buffer[i] = copia[i - 1];
                 }
 
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                int indice = simpleMessage.length() + 1;
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){
@@ -314,12 +283,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             break;
             //Pregunta
             case 2:{
-                Agregar_Texto("Enviando Aviso Pregunta A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Pregunta Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -328,21 +297,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 byte[] copia = simpleMessage.getBytes();
 
                 //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
+                for (int i = 1; i <= simpleMessage.length(); i++) {
+                    buffer[i] = copia[i - 1];
                 }
 
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                int indice = simpleMessage.length() + 1;
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){
@@ -364,12 +324,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             break;
             //Grupo
             case 3:{
-                Agregar_Texto("Enviando Aviso Grupo A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Grupo Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -378,21 +338,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 byte[] copia = simpleMessage.getBytes();
 
                 //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
+                for (int i = 1; i <= simpleMessage.length(); i++) {
+                    buffer[i] = copia[i - 1];
                 }
 
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                int indice = simpleMessage.length() + 1;
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){
@@ -414,12 +365,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             break; 
             //Tarea
             case 4:{
-                Agregar_Texto("Enviando Aviso Tarea A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Tarea Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -428,21 +379,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 byte[] copia = simpleMessage.getBytes();
 
                 //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
+                for (int i = 1; i <= simpleMessage.length(); i++) {
+                    buffer[i] = copia[i - 1];
                 }
 
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                int indice = simpleMessage.length() + 1;
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){
@@ -464,12 +406,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             break;
             //Curso
             case 5:{
-                Agregar_Texto("Enviando Aviso Curso A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Curso Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -478,21 +420,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 byte[] copia = simpleMessage.getBytes();
 
                 //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
+                for (int i = 1; i <= simpleMessage.length(); i++) {
+                    buffer[i] = copia[i - 1];
                 }
 
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                int indice = simpleMessage.length() + 1;
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){
@@ -514,12 +447,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
             break;
             //Tarea por calificar
             case 6:{
-                Agregar_Texto("Enviando Aviso Tarea A La IP: "+ip+"...\n");
+                Agregar_Texto("Enviando Aviso Tarea Por Calificar Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
 
                 String simpleMessage = String.valueOf(id_Usuario);
                 byte bandera = 0;
 
-                byte[] buffer = new byte[64];
+                byte[] buffer = new byte[16];
 
                 //Usuario:
                 buffer[0] = (byte) simpleMessage.length();
@@ -528,21 +461,12 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                 byte[] copia = simpleMessage.getBytes();
 
                 //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
+                for (int i = 1; i <= simpleMessage.length(); i++) {
+                    buffer[i] = copia[i - 1];
                 }
 
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) ip.length();
-                indice++;
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                copia = ip.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 0; i < ip.length();i++,indice++){
-                    buffer[indice] = copia[i];
-                }
+                int indice = simpleMessage.length() + 1;
+                buffer[indice] = (byte) tipo_Aviso;
 
                 while(bandera < 60){
                     try(DatagramSocket socketSender = new DatagramSocket()){

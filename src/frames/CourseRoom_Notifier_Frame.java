@@ -151,9 +151,10 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         public void run(){
             
             Agregar_Texto("Esperando Conexión Con CourseRoom Server...");
-            byte[] entryBuffer = new byte[64];
+            byte[] entryBuffer = new byte[16];
             DatagramPacket datagramPacket = new DatagramPacket(entryBuffer,entryBuffer.length);
             String mensaje;
+            String valor;
             int longitud;
             int indice;
             while(true){
@@ -171,17 +172,15 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                         arreglo[i-1] = entryBuffer[i];
                     }
                     
-                    indice = indice + 1;
-                    mensaje = ConvertirArreglo(arreglo);
+                    valor = ConvertirArreglo(arreglo);
                     
-                    Id_Usuario = Integer.parseInt(mensaje);
-                   
-                    indice = (int)entryBuffer[indice++];
+                    Id_Usuario = Integer.parseInt(valor);
                     
-                    mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación";
-                    Agregar_Texto(mensaje+"\n");
                     
-                    Enviar_Aviso(Id_Usuario, indice);
+                    mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación"+"\n";
+                    Agregar_Texto(mensaje);
+                    
+                    Enviar_Aviso(Id_Usuario);
 
                 } catch (IOException ex) {
                     Agregar_Texto(ex.getMessage());
@@ -195,297 +194,42 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         return new String(arreglo);
     }
 
-    private void Enviar_Aviso(int id_Usuario, int tipo_Aviso){
+    private void Enviar_Aviso(int id_Usuario){
         
-        switch(tipo_Aviso){
-            //Aviso
-            case 0:
-            {
-                Agregar_Texto("Enviando Aviso Al Usuario: "+String.valueOf(id_Usuario)+"...\n");
+        Agregar_Texto("Enviando Aviso Al Usuario: "+id_Usuario+"...\n");
+        
+        String simpleMessage = String.valueOf(id_Usuario);
+        byte bandera = 0;
+        
+        byte[] buffer = new byte[16];
+        
+        //Usuario:
+        buffer[0] = (byte) simpleMessage.length();
+			
+        //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
+        byte[] copia = simpleMessage.getBytes();
 
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
+        //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
+        for(int i = 1; i <= simpleMessage.length();i++){
+            buffer[i] = copia[i-1];
+        }
+        
+       
+        while(bandera < 60){
+            try(DatagramSocket socketSender = new DatagramSocket()){
 
-                byte[] buffer = new byte[16];
+                DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
+                        InetAddress.getByName("localhost"),9002);
 
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for(int i = 1; i <= simpleMessage.length();i++){
-                    buffer[i] = copia[i-1];
-                }
-
-                int indice = simpleMessage.length()+1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9002);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break;
-            //Chat
-            case 1:{
-                Agregar_Texto("Enviando Aviso Chat Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
-
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
-
-                byte[] buffer = new byte[16];
-
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for (int i = 1; i <= simpleMessage.length(); i++) {
-                    buffer[i] = copia[i - 1];
-                }
-
-                int indice = simpleMessage.length() + 1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9003);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break;
-            //Pregunta
-            case 2:{
-                Agregar_Texto("Enviando Aviso Pregunta Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
-
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
-
-                byte[] buffer = new byte[16];
-
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for (int i = 1; i <= simpleMessage.length(); i++) {
-                    buffer[i] = copia[i - 1];
-                }
-
-                int indice = simpleMessage.length() + 1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9004);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break;
-            //Grupo
-            case 3:{
-                Agregar_Texto("Enviando Aviso Grupo Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
-
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
-
-                byte[] buffer = new byte[16];
-
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for (int i = 1; i <= simpleMessage.length(); i++) {
-                    buffer[i] = copia[i - 1];
-                }
-
-                int indice = simpleMessage.length() + 1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9005);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break; 
-            //Tarea
-            case 4:{
-                Agregar_Texto("Enviando Aviso Tarea Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
-
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
-
-                byte[] buffer = new byte[16];
-
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for (int i = 1; i <= simpleMessage.length(); i++) {
-                    buffer[i] = copia[i - 1];
-                }
-
-                int indice = simpleMessage.length() + 1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9006);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break;
-            //Curso
-            case 5:{
-                Agregar_Texto("Enviando Aviso Curso Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
-
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
-
-                byte[] buffer = new byte[16];
-
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for (int i = 1; i <= simpleMessage.length(); i++) {
-                    buffer[i] = copia[i - 1];
-                }
-
-                int indice = simpleMessage.length() + 1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9007);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break;
-            //Tarea por calificar
-            case 6:{
-                Agregar_Texto("Enviando Aviso Tarea Por Calificar Al Usuario: " + String.valueOf(id_Usuario) + "...\n");
-
-                String simpleMessage = String.valueOf(id_Usuario);
-                byte bandera = 0;
-
-                byte[] buffer = new byte[16];
-
-                //Usuario:
-                buffer[0] = (byte) simpleMessage.length();
-
-                //Creamos un valor auxiliar (copia) que nos obtendrá los bytes de la cadena.
-                byte[] copia = simpleMessage.getBytes();
-
-                //Creamos la copia del valor auxiliar hacia nuestro arreglo de bytes
-                for (int i = 1; i <= simpleMessage.length(); i++) {
-                    buffer[i] = copia[i - 1];
-                }
-
-                int indice = simpleMessage.length() + 1;
-                buffer[indice] = (byte) tipo_Aviso;
-
-                while(bandera < 60){
-                    try(DatagramSocket socketSender = new DatagramSocket()){
-
-                        DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length,
-                                InetAddress.getByName("localhost"),9008);
-
-                        socketSender.send(datagramPacket);
-                        bandera = 100;
-                    } catch (SocketException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    } catch (IOException ex) {
-                        System.err.println(ex.getMessage());
-                        bandera++;
-                    }    
-                }
-            }
-            break;
+                socketSender.send(datagramPacket);
+                bandera = 100;
+            } catch (SocketException ex) {
+                System.err.println(ex.getMessage());
+                bandera++;
+            } catch (IOException ex) {
+                System.err.println(ex.getMessage());
+                bandera++;
+            }    
         }
     }
     

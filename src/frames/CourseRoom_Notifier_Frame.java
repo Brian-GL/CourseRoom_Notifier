@@ -143,14 +143,13 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_formWindowClosing
 
-   
     private class Conexion_Servidor extends Thread{
         
         
         @Override
         public void run(){
             
-            Agregar_Texto("Esperando Conexión Con CourseRoom Server...");
+            Agregar_Texto("Esperando Conexión Con CourseRoom Server O CourseRoom Analyzer...\n");
             byte[] entryBuffer = new byte[16];
             DatagramPacket datagramPacket = new DatagramPacket(entryBuffer,entryBuffer.length);
             String mensaje;
@@ -177,7 +176,7 @@ public class CourseRoom_Notifier_Frame extends javax.swing.JFrame {
                     Id_Usuario = Integer.parseInt(valor);
                     
                     
-                    mensaje = "\nEl Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación"+"\n";
+                    mensaje = "El Usuario "+String.valueOf(Id_Usuario)+" Tiene Una Nueva Notificación"+"\n";
                     Agregar_Texto(mensaje);
                     
                     Enviar_Aviso(Id_Usuario);
